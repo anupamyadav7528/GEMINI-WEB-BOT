@@ -20,22 +20,21 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Yahan sahi configuration initialization hai
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        // `@google/generative-ai` ke liye sahi initialization method:
+        const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
         
-        // Sahi method calling: generateContent ke andar seedhe contents pass hota hai
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [{ parts: [{ text: message }] }]
-        });
+        // Iska model call karne ka sahi rasta:
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        // Gemini response validation text extraction
-        const replyText = response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text;
+        // Sahi method content generate karne ka:
+        const result = await model.generateContent(message);
+        const response = await result.response;
+        const text = response.text();
 
-        if (replyText) {
-            return res.status(200).json({ reply: replyText });
+        if (text) {
+            return res.status(200).json({ reply: text });
         } else {
-            throw new Error("Gemini response format structure mismatched");
+            throw new Error("Empty response from model");
         }
 
     } catch (error) {
